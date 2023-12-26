@@ -7,8 +7,9 @@ import sqlparse
 from alembic.autogenerate import renderers
 from alembic.operations import MigrateOperation, Operations
 
-from dddl.src.config import load_config
-from dddl.src.models import RevisionedScript, DDL
+from alembic_dddl.src.config import load_config
+from alembic_dddl.src.models import RevisionedScript, DDL
+from alembic_dddl.src.renderer import RevisionedScriptRenderer, DDLRenderer, SQLRenderer
 
 logger = logging.getLogger(f"alembic.{__name__}")
 
@@ -42,15 +43,12 @@ class SyncDDLOp(MigrateOperation):
         )
 
 
-def ensure_dir(dir: str) -> None:
-    if not os.path.isdir(dir):
-        os.mkdir(dir)
-
-
 def gen_revisioned_script_name(
     name: str, revision: str, time: datetime, use_timestamps: bool
 ) -> str:
-    time_part = f"{int(time.timestamp())}" if use_timestamps else time.strftime('%Y_%m_%d_%H%M')
+    time_part = (
+        f"{int(time.timestamp())}" if use_timestamps else time.strftime("%Y_%m_%d_%H%M")
+    )
     return time_part + f"_{name}_{revision}.sql"
 
 
@@ -67,22 +65,17 @@ def run_ddl_script(operations, operation) -> None:
 @renderers.dispatch_for(SyncDDLOp)
 def render_create_ddl(autogen_context, op: SyncDDLOp):
     if isinstance(op.up_script, RevisionedScript):
-        return f"op.run_ddl_script('{op.up_script.script_name}')"
+        renderer = RevisionedScriptRenderer(script=op.up_script)
     elif isinstance(op.up_script, DDL):
         config = load_config(autogen_context.opts["template_args"]["config"])
-        ensure_dir(config.scripts_location)
         revision = (
             autogen_context.opts["revision_context"].generated_revisions[0].rev_id
         )
-        out_filename = gen_revisioned_script_name(
-            op.up_script.name, revision, op.time, config.use_timestamps
+        renderer = DDLRenderer(
+            ddl=op.up_script, config=config, revision_id=revision, time=op.time
         )
-        out_path = os.path.join(config.scripts_location, out_filename)
-        with open(out_path, "w") as f:
-            f.write(op.up_script.sql)
-
-        return f"op.run_ddl_script('{out_filename}')"
     elif isinstance(op.up_script, str):
-        return "\n".join(f"op.execute('{s}')" for s in sqlparse.split(op.up_script))
-
-    raise ValueError(f"Unsupported up_script: {op.up_script!r}")
+        renderer = SQLRenderer(sql=op.up_script)
+    else:
+        raise ValueError(f"Unsupported up_script: {op.up_script!r}")
+    return renderer.render()
