@@ -1,0 +1,13 @@
+__pycache__
+*.pyc
+.DS_Store
+*.dbml
+*.log
+!test_schema.dbml
+build
+dist
+pydbml.egg-info
+.mypy_cache
+.coverage
+.eggs
+.idea
