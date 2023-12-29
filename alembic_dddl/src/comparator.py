@@ -4,22 +4,53 @@ from pathlib import Path
 from typing import Union, List, Dict, Tuple, Sequence
 
 import sqlparse
-from alembic.script.revision import Revision
+from alembic.autogenerate.api import AutogenContext
 
-from alembic_dddl.src.models import RevisionedScript, DDL
 from alembic_dddl.src.file_format import TimestampedFileFormat, DateTimeFileFormat
+from alembic_dddl.src.models import RevisionedScript, DDL
+
+
+class RevisionManager:
+    def __init__(self, autogen_context: AutogenContext) -> None:
+        self.revisions = autogen_context.opts["script"].walk_revisions()
+        self.heads = autogen_context.opts["script"].get_heads()
+        self.cur_head = autogen_context.opts["revision_context"].generated_revisions[0].head
+
+    def get_ordered_revisions(self) -> List[str]:
+        """
+        Get the list of revisions ordered from head to base.
+
+        We would normally just accept the order of revisions which `walk_revisions` offers us,
+        except the situation when we are currently on a branch. In this case we want to filter
+        out all revisions from the parallel branches.
+        """
+
+        if self.cur_head in ("head", "heads", None):
+            next_ = set(self.heads)
+        else:
+            next_ = {self.cur_head}
+        result = []
+        for rev in self.revisions:
+            if rev.revision in next_:
+                result.append(rev.revision)
+                next_.discard(rev.revision)
+                if isinstance(rev.down_revision, tuple):
+                    next_.update(rev.down_revision)
+                else:
+                    next_.add(rev.down_revision)
+        return result
 
 
 class DDLVersions:
-    def __init__(
-        self,
-        ddl_dir: Union[Path, str],
-    ) -> None:
+    def __init__(self, ddl_dir: Union[Path, str]) -> None:
         self.ddl_dir = ddl_dir
 
-        self._ddl_by_revision = self._group_by_revision()
-
     def _get_all_scripts(self) -> List[RevisionedScript]:
+        """
+        Find all .sql files in the ddl_dir and convert them into RevisionedScript objects
+        if they match the supported filename formats.
+        """
+
         result = []
         file_formats = [TimestampedFileFormat, DateTimeFileFormat]
         for file in glob(os.path.join(self.ddl_dir, "*.sql")):
@@ -30,21 +61,35 @@ class DDLVersions:
                     break
         return result
 
-    def _group_by_revision(self) -> Dict[str, List[RevisionedScript]]:
+    def _group_by_revision(self, scripts: List[RevisionedScript]) -> Dict[str, List[RevisionedScript]]:
+        """Group a list of RevisionedScripts into a dictionary by revisions."""
         result = {}
-        scripts = self._get_all_scripts()
 
         for script in scripts:
             result.setdefault(script.revision, []).append(script)
 
         return result
 
-    def get_latest_revisions(self, rev_order: List[str]) -> Dict[str, RevisionedScript]:
+    def get_latest_ddl_revisions(self, rev_order: List[str]) -> Dict[str, RevisionedScript]:
+        """
+        Use the list of revisions ordered from head to base in `rev_order` parameter to create a
+        dictionary of the latest versions of each script in ddl dir by name.
+
+        Args:
+            rev_order: list of revision strings, ordered from current head to base.
+
+        Returns:
+            A dictionary of the most recent scripts for the current head where key is script name
+            and value is RevisionedScript object,
+        """
+
+        scripts = self._get_all_scripts()
+        ddl_by_revision = self._group_by_revision(scripts)
         return {
             s.name: s
             for r in reversed(rev_order)
-            if r in self._ddl_by_revision
-            for s in self._ddl_by_revision[r]
+            if r in ddl_by_revision
+            for s in ddl_by_revision[r]
         }
 
 
@@ -52,18 +97,16 @@ class CustomDDLComparator:
     def __init__(
         self,
         ddl_dir: Union[Path, str],
-        dddls: Sequence[DDL],
+        ddls: Sequence[DDL],
+        autogen_context: AutogenContext,
     ) -> None:
-        self.ddls = {d.name: d for d in dddls}
+        self.ddls = {d.name: d for d in ddls}
+        self.rev_manager = RevisionManager(autogen_context=autogen_context)
         self.versions = DDLVersions(ddl_dir=ddl_dir)
 
-    def get_changed_ddl(
-        self, revisions: List[Revision], heads: List[str], cur_head: str
-    ) -> List[Tuple[DDL, RevisionedScript]]:
-        revisions_o = self._order_revisions(
-            revisions=revisions, head=cur_head, heads=heads
-        )
-        latest_revisions = self.versions.get_latest_revisions(revisions_o)
+    def get_changed_ddls(self) -> List[Tuple[DDL, RevisionedScript]]:
+        rev_order = self.rev_manager.get_ordered_revisions()
+        latest_revisions = self.versions.get_latest_ddl_revisions(rev_order)
         return self._compare(latest_revisions)
 
     def _compare(
@@ -83,20 +126,3 @@ class CustomDDLComparator:
         two = sqlparse.format(rev_script.read().strip(), reindent_aligned=True)
 
         return one != two
-
-    def _order_revisions(
-        self, revisions: List[Revision], head: str, heads: List[str]
-    ) -> List[str]:
-        if head in ("head", "heads", None):
-            next_ = heads[:]
-        else:
-            next_ = [head]
-        result = []
-        for rev in revisions:
-            if rev.revision in next_:
-                result.append(next_.pop(next_.index(rev.revision)))
-                if isinstance(rev.down_revision, tuple):
-                    next_ += rev.down_revision
-                else:
-                    next_.append(rev.down_revision)
-        return result
