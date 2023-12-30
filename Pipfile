@@ -8,6 +8,7 @@ alembic = "==1.9"
 sqlparse = "*"
 
 [dev-packages]
+pytest = "*"
 
 [requires]
 python_version = "3.8"

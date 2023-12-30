@@ -6,10 +6,10 @@ from typing import Union, Sequence
 from alembic.autogenerate import comparators
 from alembic.autogenerate.api import AutogenContext
 
-from dddl.src.comparator import CustomDDLComparator
-from dddl.src.config import load_config
-from dddl.src.models import DDL
-from dddl.src.ops import SyncDDLOp
+from alembic_dddl.src.comparator import CustomDDLComparator
+from alembic_dddl.src.config import load_config
+from alembic_dddl.src.models import DDL
+from alembic_dddl.src.ops import SyncDDLOp
 
 logger = logging.getLogger(__name__)
 
@@ -39,15 +39,11 @@ def compare_custom_ddl(autogen_context: AutogenContext, upgrade_ops, _) -> None:
 
     comparator = CustomDDLComparator(
         ddl_dir=config.scripts_location,
-        dddls=ddl_registry.ddls,
+        ddls=ddl_registry.ddls,
+        autogen_context=autogen_context
     )
 
-    revisions = list(autogen_context.opts["script"].walk_revisions())
-    heads = autogen_context.opts["script"].get_heads()
-    cur_head = autogen_context.opts["revision_context"].generated_revisions[0].head
-    changed = comparator.get_changed_ddl(
-        revisions=revisions, heads=heads, cur_head=cur_head
-    )
+    changed = comparator.get_changed_ddls()
 
     time = datetime.now()
     for dddl, rev_script in changed:
