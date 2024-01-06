@@ -7,32 +7,52 @@ import sqlparse
 from alembic_dddl.src.file_format import DateTimeFileFormat, TimestampedFileFormat
 from alembic_dddl.src.models import RevisionedScript, DDL
 from alembic_dddl.src.config import DDDLConfig
-from alembic_dddl.src.utils import ensure_dir
+from alembic_dddl.src.utils import ensure_dir, escape_quotes
 
 
 class BaseRenderer(ABC):
+    """Renderers generate code for alembic revision script"""
+
     @abstractmethod
     def render(self) -> str:
         ...
 
 
 class RevisionedScriptRenderer(BaseRenderer):
+    """Renderer for RevisionedScript. This will be used to generate downgrade commands."""
+
     def __init__(self, script: RevisionedScript) -> None:
         self.script = script
 
     def render(self) -> str:
-        return f"op.run_ddl_script('{self.script.script_name}')"
+        """Generate code to run the revisioned script"""
+        script_name = os.path.split(self.script.filepath)[-1]
+        return f"op.run_ddl_script('{script_name}')"
 
 
 class SQLRenderer(BaseRenderer):
+    """
+    Renderer for raw SQL queries. This will be used to generate drop commands (downgrading first
+    revision of the script)
+    """
+
     def __init__(self, sql: str) -> None:
         self.sql = sql
 
     def render(self) -> str:
+        """
+        Generate code to run raw SQL script. Since op.execute only supports one statement,
+        if the script contains multiple statements — it will be split into multiple op.execute
+        operations.
+        """
+
         statements = []
         for script in sqlparse.split(self.sql):
-            quotes = "'''" if "\n" in script else "'"
-            statements.append(f"op.execute({quotes}{script}{quotes})")
+            if "\n" in script:
+                quoted_script = f"'''{script}'''"
+            else:
+                quoted_script = f"'{escape_quotes(script)}'"
+            statements.append(f"op.execute({quoted_script})")
         return "\n".join(statements)
 
 

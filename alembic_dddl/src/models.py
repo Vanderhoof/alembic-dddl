@@ -18,8 +18,6 @@ class RevisionedScript:
         self.name = name
         self.revision = revision
 
-        self.script_name = os.path.split(filepath)[-1]
-
     def read(self) -> str:
         with open(self.filepath) as f:
             contents = f.read()

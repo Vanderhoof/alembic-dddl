@@ -19,9 +19,6 @@ class RunDDLScriptOp(MigrateOperation):
     def __init__(self, script_name: str):
         self.script_name = script_name
 
-    def __repr__(self) -> str:
-        return f"CreateCustomDDL({self.script_name!r})"
-
     @classmethod
     def run_ddl_script(cls, operations, script_name, **kw):
         op = RunDDLScriptOp(script_name=script_name, **kw)
@@ -41,15 +38,6 @@ class SyncDDLOp(MigrateOperation):
         return SyncDDLOp(
             up_script=self.down_script, down_script=self.up_script, time=self.time
         )
-
-
-def gen_revisioned_script_name(
-    name: str, revision: str, time: datetime, use_timestamps: bool
-) -> str:
-    time_part = (
-        f"{int(time.timestamp())}" if use_timestamps else time.strftime("%Y_%m_%d_%H%M")
-    )
-    return time_part + f"_{name}_{revision}.sql"
 
 
 @Operations.implementation_for(RunDDLScriptOp)

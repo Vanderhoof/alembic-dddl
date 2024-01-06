@@ -15,6 +15,17 @@ class DDDLConfig:
 
     @classmethod
     def _process_bools(cls, alembic_config_dict: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        For each field that should be interpreted as a boolean, convert its actual value in the
+        `alembic_config_dict` into a boolean using alembic's asbool function.
+
+        Args:
+            alembic_config_dict: a dictionary with DDDL options, got from alembic config
+
+        Returns:
+            A copy of the input dictionary with processed boolean values
+        """
+
         result = dict(alembic_config_dict)
         bool_fields = (f.name for f in fields(cls) if f.type == bool)
         for bool_field in bool_fields:
@@ -24,6 +35,10 @@ class DDDLConfig:
 
     @classmethod
     def from_config(cls, alembic_config: Config) -> 'DDDLConfig':
+        """
+        Extract DDDL configuration from alembic config and convert it into a DDDLConfig instance.
+        """
+
         config_fields = {f.name for f in fields(cls)}
         config_dict = alembic_config.get_section(DDDL_CONFIG_SECTION) or {}
         config_dict = {k: v for k, v in config_dict.items() if k in config_fields}
@@ -33,5 +48,6 @@ class DDDLConfig:
 
 
 def load_config(c: Config) -> DDDLConfig:
+    """Get DDDLConfig instance from alembic config"""
     return DDDLConfig.from_config(c)
 

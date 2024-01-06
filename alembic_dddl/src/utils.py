@@ -10,3 +10,7 @@ def ensure_dir(dir: str) -> None:
     if not path.is_dir():
         logger.info(f'DDL dir does not exist, creating: {path}')
         path.mkdir(parents=True)
+
+
+def escape_quotes(text: str) -> str:
+    return text.replace("'", "\\'")
