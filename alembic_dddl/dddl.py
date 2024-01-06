@@ -40,7 +40,8 @@ def compare_custom_ddl(autogen_context: AutogenContext, upgrade_ops, _) -> None:
     comparator = CustomDDLComparator(
         ddl_dir=config.scripts_location,
         ddls=ddl_registry.ddls,
-        autogen_context=autogen_context
+        autogen_context=autogen_context,
+        ignore_comments=config.ignore_comments,
     )
 
     changed = comparator.get_changed_ddls()

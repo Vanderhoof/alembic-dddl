@@ -11,6 +11,7 @@ DDDL_CONFIG_SECTION = 'dddl'
 class DDDLConfig:
     scripts_location: str = 'migrations/versions/ddl'
     use_timestamps: bool = False
+    ignore_comments: bool = False
 
     @classmethod
     def _process_bools(cls, alembic_config_dict: Dict[str, Any]) -> Dict[str, Any]:
