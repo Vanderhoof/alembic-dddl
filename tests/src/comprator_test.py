@@ -1,15 +1,18 @@
 import os
 from collections import namedtuple
+from pathlib import Path
+from textwrap import dedent
 from typing import Generator, Union, Tuple, List, Dict
 from unittest.mock import Mock, patch
 
 import pytest
 
-from alembic_dddl import RevisionedScript
-from alembic_dddl.src.comparator import RevisionManager, DDLVersions
+from alembic_dddl import RevisionedScript, DDL
+from alembic_dddl.src.comparator import RevisionManager, DDLVersions, CustomDDLComparator
 
 MockScript = namedtuple("MockScript", "revision down_revision")
 
+DDL_DIR = Path(__file__).parent / 'ddl'
 
 @pytest.fixture
 def rev_tree_simple() -> List[MockScript]:
@@ -37,7 +40,7 @@ def rev_tree_complex() -> List[MockScript]:
     ]
 
 
-def gen_autogen_context(rev_tree: List[Mock], head: Union[str, None] = None) -> Mock:
+def gen_autogen_context(rev_tree: List[MockScript], head: Union[str, None] = None) -> Mock:
     heads = [rev_tree[0].revision]
     cur_head = head if head else heads[0]
     result = Mock(
@@ -54,7 +57,7 @@ def gen_autogen_context(rev_tree: List[Mock], head: Union[str, None] = None) -> 
 
 class TestRevisionManager:
     @staticmethod
-    def test_init(rev_tree_simple: List[Mock]) -> None:
+    def test_init(rev_tree_simple: List[MockScript]) -> None:
         autogen_context = gen_autogen_context(rev_tree_simple)
         rev_man = RevisionManager(autogen_context=autogen_context)
 
@@ -63,7 +66,7 @@ class TestRevisionManager:
         assert rev_man.cur_head == rev_tree_simple[0].revision
 
     @staticmethod
-    def test_get_ordered_revisions_simple(rev_tree_simple: List[Mock]) -> None:
+    def test_get_ordered_revisions_simple(rev_tree_simple: List[MockScript]) -> None:
         autogen_context = gen_autogen_context(rev_tree_simple)
         rev_man = RevisionManager(autogen_context=autogen_context)
 
@@ -71,7 +74,7 @@ class TestRevisionManager:
         assert rev_man.get_ordered_revisions() == expected
 
     @staticmethod
-    def test_get_ordered_revisions_complex(rev_tree_complex: List[Mock]) -> None:
+    def test_get_ordered_revisions_complex(rev_tree_complex: List[MockScript]) -> None:
         autogen_context = gen_autogen_context(rev_tree_complex)
         rev_man = RevisionManager(autogen_context=autogen_context)
 
@@ -90,7 +93,7 @@ class TestRevisionManager:
         assert rev_man.get_ordered_revisions() == expected
 
     @staticmethod
-    def test_get_ordered_revisions_start_on_a_branch(rev_tree_complex: List[Mock]) -> None:
+    def test_get_ordered_revisions_start_on_a_branch(rev_tree_complex: List[MockScript]) -> None:
         autogen_context = gen_autogen_context(rev_tree_complex, head="1e1166bc4bfb")
         rev_man = RevisionManager(autogen_context=autogen_context)
 
@@ -283,3 +286,184 @@ class TestDDLVersionsGetLatestDDLRevisions:
         with patch('alembic_dddl.src.comparator.glob', Mock(return_value=scripts)):
             result = ddl_versions.get_latest_ddl_revisions(rev_order=rev_order)
         assert result == expected
+
+
+@pytest.fixture
+def mock_autogen_context(rev_tree_simple: List[MockScript]) -> Mock:
+    return gen_autogen_context(rev_tree_simple)
+
+
+@pytest.fixture
+def empty_comparator(mock_autogen_context) -> CustomDDLComparator:
+    return CustomDDLComparator(
+        ddl_dir=Path(__file__).parent,
+        ddls=[],
+        autogen_context=mock_autogen_context,
+        ignore_comments=False
+    )
+
+
+class TestComparatorScriptsDiffer:
+    @staticmethod
+    def test_same_script(empty_comparator: CustomDDLComparator) -> None:
+        script = "SELECT * FROM Customers WHERE customer_name LIKE 'John%';"
+        assert empty_comparator._scripts_differ(one=script, two=script) is False
+
+    @staticmethod
+    def test_different_script(empty_comparator: CustomDDLComparator) -> None:
+        script1 = "SELECT * FROM Customers WHERE customer_name LIKE 'John%';"
+        script2 = "SELECT * FROM Orders WHERE paid = False;"
+        assert empty_comparator._scripts_differ(one=script1, two=script2) is True
+
+    @staticmethod
+    def test_reformatted_script(empty_comparator: CustomDDLComparator) -> None:
+        script1 = "SELECT * FROM Customers WHERE customer_name LIKE 'John%';"
+        script2 = dedent("""
+            SELECT *
+            FROM Customers
+            WHERE customer_name LIKE 'John%';""")
+        assert empty_comparator._scripts_differ(one=script1, two=script2) is False
+
+    @staticmethod
+    def test_comments_ignored(empty_comparator: CustomDDLComparator) -> None:
+        empty_comparator.ignore_comments = True
+        script1 = "SELECT * FROM Customers WHERE customer_name LIKE 'John%';"
+        script2 = dedent("""
+            SELECT *
+            FROM Customers -- table containing customers
+            WHERE customer_name LIKE 'John%';""")
+        assert empty_comparator._scripts_differ(one=script1, two=script2) is False
+
+    @staticmethod
+    def test_comments_not_ignored(empty_comparator: CustomDDLComparator) -> None:
+        empty_comparator.ignore_comments = False
+        script1 = "SELECT * FROM Customers WHERE customer_name LIKE 'John%';"
+        script2 = dedent("""
+            SELECT *
+            FROM Customers -- table containing customers
+            WHERE customer_name LIKE 'John%';""")
+        assert empty_comparator._scripts_differ(one=script1, two=script2) is True
+
+
+@pytest.fixture
+def sample_ddl1() -> DDL:
+    return DDL(
+        name="sample_ddl1",
+        sql=dedent("""\
+            DROP VIEW IF EXISTS sample_ddl1;
+            
+            CREATE VIEW sample_ddl1 AS SELECT customer_name, age from customers;
+        """),
+        down_sql="DROP VIEW sample_ddl1;"
+    )
+
+
+@pytest.fixture
+def sample_ddl2() -> DDL:
+    return DDL(
+        name="sample_ddl2",
+        sql=dedent("""\
+            DROP VIEW IF EXISTS sample_ddl2;
+            
+            CREATE VIEW sample_ddl2 AS SELECT order_number, total from orders;
+        """),
+        down_sql="DROP VIEW sample_ddl2;"
+    )
+
+
+@pytest.fixture
+def sample_ddl3() -> DDL:
+    return DDL(
+        name="sample_ddl3",
+        sql=dedent("""\
+            DROP VIEW IF EXISTS sample_ddl3;
+            
+            CREATE VIEW sample_ddl3 AS SELECT product_name, price from products;
+        """),
+        down_sql="DROP VIEW sample_ddl3;"
+    )
+
+
+@pytest.fixture
+def rev_script1() -> RevisionedScript:
+    return RevisionedScript(
+        filepath=str(DDL_DIR / '2023_10_06_1522_sample_ddl1_4b550063ade3.sql'),
+        name='sample_ddl1',
+        revision='4b550063ade3'
+    )
+
+
+@pytest.fixture
+def rev_script2_old() -> RevisionedScript:
+    return RevisionedScript(
+        filepath=str(DDL_DIR / '2023_10_06_1522_sample_ddl2_4b550063ade3.sql'),
+        name='sample_ddl2',
+        revision='4b550063ade3'
+    )
+
+
+@pytest.fixture
+def rev_script2_new() -> RevisionedScript:
+    return RevisionedScript(
+        filepath=str(DDL_DIR / '2023_10_26_1028_sample_ddl2_181ce9418692.sql'),
+        name='sample_ddl2',
+        revision='181ce9418692'
+    )
+
+
+@pytest.fixture
+def rev_script4() -> RevisionedScript:
+    return RevisionedScript(
+        filepath=str(DDL_DIR / '2023_10_26_1028_sample_ddl4_181ce9418692.sql'),
+        name='sample_ddl4',
+        revision='181ce9418692'
+    )
+
+
+@pytest.fixture
+def latest_revisions(
+    rev_script1: RevisionedScript,
+    rev_script2_new: RevisionedScript,
+    rev_script4: RevisionedScript,
+) -> Dict[str, RevisionedScript]:
+    return {r.name: r for r in [rev_script1, rev_script2_new, rev_script4]}
+
+
+@pytest.fixture
+def sample_ddls(
+    sample_ddl1: DDL,  #
+    sample_ddl2: DDL,  # has two revisions
+    sample_ddl3: DDL  # does not exist in revisions
+) -> Dict[str, DDL]:
+    return {d.name: d for d in [sample_ddl1, sample_ddl2, sample_ddl3]}
+
+
+class TestComparatorGetChangedDDLs:
+    def test_changed_missing_and_new(
+        self,
+        empty_comparator: CustomDDLComparator,
+        latest_revisions: Dict[str, RevisionedScript],
+        sample_ddls: Dict[str, DDL],
+    ) -> None:
+        empty_comparator.latest_revisions = latest_revisions
+        empty_comparator.ddls = sample_ddls
+        result = empty_comparator.get_changed_ddls()
+        assert len(result) == 3
+        assert result[0][1].filepath == str(DDL_DIR / '2023_10_06_1522_sample_ddl1_4b550063ade3.sql')
+        assert result[1][1].filepath == str(DDL_DIR / '2023_10_26_1028_sample_ddl2_181ce9418692.sql')
+        assert result[2][1] is None
+
+
+class TestComparatorGetLatestRevisions:
+    def test_ok(
+        self,
+        rev_tree_simple: List[MockScript],
+        latest_revisions: Dict[str, RevisionedScript],
+        empty_comparator: CustomDDLComparator,
+    ) -> None:
+        autogen_context = gen_autogen_context(rev_tree_simple)
+        result = empty_comparator._get_latest_revisions(
+            ddl_dir=DDL_DIR, autogen_context=autogen_context
+        )
+
+        assert result == latest_revisions
