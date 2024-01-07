@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "alembic-dddl"
 version = "0.1.1"
-description = "Alembic extension which adds support for custom DDL in autogenerate command."
+description = "Alembic extension that adds support for arbitrary user-defined objects like views or functions in autogenerate command."
 authors = ["Daniil Minukhin <ddddsa@gmail.com>"]
 license = "MIT"
 readme = "README.md"
