@@ -1,5 +1,7 @@
 # Example project
 
-In this example project we have an SQLite database with the tables defined in [app/models.py](https://github.com/Vanderhoof/alembic-dddl/blob/master/example/app/models.py) and DDL scripts defined in [app/ddl.py](https://github.com/Vanderhoof/alembic-dddl/blob/master/example/app/ddl.py).
+This is a fully working example project that features a sample SQLite database. The tables defined in [app/models.py](https://github.com/Vanderhoof/alembic-dddl/blob/master/example/app/models.py) and DDL scripts are defined in [app/ddl.py](https://github.com/Vanderhoof/alembic-dddl/blob/master/example/app/ddl.py).
 
-We then registered these DDL scripts in [migrations/env.py](https://github.com/Vanderhoof/alembic-dddl/blob/master/example/migrations/env.py). Every migration script in [migrations/versions](https://github.com/Vanderhoof/alembic-dddl/tree/master/example/migrations/versions) is created using `alembic revision --autogenerate` command.
+The DDL scripts are registered in [migrations/env.py](https://github.com/Vanderhoof/alembic-dddl/blob/master/example/migrations/env.py) using the `register_ddl` function.
+
+Every migration script in [migrations/versions](https://github.com/Vanderhoof/alembic-dddl/tree/master/example/migrations/versions) is created automatically using `alembic revision --autogenerate` command.
