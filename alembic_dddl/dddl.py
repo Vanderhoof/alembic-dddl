@@ -44,7 +44,6 @@ def compare_custom_ddl(autogen_context: AutogenContext, upgrade_ops, _) -> None:
     """
 
     config = load_config(autogen_context.opts["template_args"]["config"])
-    logger.info(f"Loaded scripts location from config: {config.scripts_location}")
 
     comparator = CustomDDLComparator(
         ddl_dir=config.scripts_location,
