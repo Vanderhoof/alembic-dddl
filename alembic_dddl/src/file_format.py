@@ -15,7 +15,6 @@ class FileFormatBase(ABC):
     @abstractmethod
     def generate_filename(name: str, revision: str, time: datetime) -> str:
         """Generate filename string for this file format out from the supplied components."""
-        ...
 
     @classmethod
     def get_script_if_matches(cls, filepath: str) -> Union[RevisionedScript, None]:

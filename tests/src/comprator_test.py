@@ -42,7 +42,7 @@ def rev_tree_complex() -> List[MockScript]:
 
 def gen_autogen_context(rev_tree: List[MockScript], head: Union[str, None] = None) -> Mock:
     heads = [rev_tree[0].revision]
-    cur_head = head if head else heads[0]
+    cur_head = head if head else 'head'
     result = Mock(
         opts={
             "script": Mock(
@@ -63,7 +63,7 @@ class TestRevisionManager:
 
         assert rev_man.revisions == rev_tree_simple
         assert rev_man.heads == [rev_tree_simple[0].revision]
-        assert rev_man.cur_head == rev_tree_simple[0].revision
+        assert rev_man.cur_head == 'head'
 
     @staticmethod
     def test_get_ordered_revisions_simple(rev_tree_simple: List[MockScript]) -> None:
@@ -343,45 +343,6 @@ class TestComparatorScriptsDiffer:
             FROM Customers -- table containing customers
             WHERE customer_name LIKE 'John%';""")
         assert empty_comparator._scripts_differ(one=script1, two=script2) is True
-
-
-@pytest.fixture
-def sample_ddl1() -> DDL:
-    return DDL(
-        name="sample_ddl1",
-        sql=dedent("""\
-            DROP VIEW IF EXISTS sample_ddl1;
-            
-            CREATE VIEW sample_ddl1 AS SELECT customer_name, age from customers;
-        """),
-        down_sql="DROP VIEW sample_ddl1;"
-    )
-
-
-@pytest.fixture
-def sample_ddl2() -> DDL:
-    return DDL(
-        name="sample_ddl2",
-        sql=dedent("""\
-            DROP VIEW IF EXISTS sample_ddl2;
-            
-            CREATE VIEW sample_ddl2 AS SELECT order_number, total from orders;
-        """),
-        down_sql="DROP VIEW sample_ddl2;"
-    )
-
-
-@pytest.fixture
-def sample_ddl3() -> DDL:
-    return DDL(
-        name="sample_ddl3",
-        sql=dedent("""\
-            DROP VIEW IF EXISTS sample_ddl3;
-            
-            CREATE VIEW sample_ddl3 AS SELECT product_name, price from products;
-        """),
-        down_sql="DROP VIEW sample_ddl3;"
-    )
 
 
 @pytest.fixture

@@ -3,8 +3,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-import alembic_dddl.src.config
-from alembic_dddl.src.config import DDDLConfig
+from alembic_dddl.src.config import DDDLConfig, load_config
 
 
 @pytest.fixture
@@ -59,6 +58,6 @@ def test_from_config_no_section(mock_empty_alembic_config: Mock) -> None:
 def test_load_config(mock_alembic_config: Mock) -> None:
     # mostly for coverage :)
     with patch('alembic_dddl.src.config.DDDLConfig') as mock_config:
-        test_load_config(mock_alembic_config)
+        load_config(mock_alembic_config)
         assert mock_config.from_config.called is True
 
