@@ -1,4 +1,3 @@
-import os
 from dataclasses import dataclass
 
 
@@ -22,9 +21,6 @@ class RevisionedScript:
         with open(self.filepath) as f:
             contents = f.read()
         return contents
-
-    def __repr__(self) -> str:
-        return f'<RevisionedScript {self.filepath!r}'
 
     def __eq__(self, other: 'RevisionedScript') -> bool:
         # for tests

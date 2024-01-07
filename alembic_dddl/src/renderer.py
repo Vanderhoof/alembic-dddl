@@ -6,7 +6,6 @@ import sqlparse
 
 from alembic_dddl.src.file_format import DateTimeFileFormat, TimestampedFileFormat
 from alembic_dddl.src.models import RevisionedScript, DDL
-from alembic_dddl.src.config import DDDLConfig
 from alembic_dddl.src.utils import ensure_dir, escape_quotes
 
 
@@ -15,7 +14,7 @@ class BaseRenderer(ABC):
 
     @abstractmethod
     def render(self) -> str:
-        ...
+        '''Generate the code for the migration script'''
 
 
 class RevisionedScriptRenderer(BaseRenderer):
@@ -57,23 +56,33 @@ class SQLRenderer(BaseRenderer):
 
 
 class DDLRenderer(BaseRenderer):
+    """
+    Renderer for DDL objects. This will be used to generate upgrade commands. This renderer is
+    also responsible for creating revisioned script files.
+    """
+
     def __init__(
-        self, ddl: DDL, config: DDDLConfig, revision_id: str, time: datetime
+        self, ddl: DDL, scripts_location: str, revision_id: str, time: datetime, use_timestamps: bool
     ) -> None:
-        self.config = config
+        self.scripts_location = scripts_location
         self.ddl = ddl
         self.revision_id = revision_id
         self.time = time
         self.file_formatter = (
-            TimestampedFileFormat if config.use_timestamps else DateTimeFileFormat
+            TimestampedFileFormat if use_timestamps else DateTimeFileFormat
         )
 
     def render(self) -> str:
-        ensure_dir(self.config.scripts_location)
+        """
+        Create a script file for this revision of DDL and save it in the scripts location. Return
+        the `run_ddl_script` operation for the created script file.
+        """
+
+        ensure_dir(self.scripts_location)
         out_filename = self.file_formatter.generate_filename(
             name=self.ddl.name, revision=self.revision_id, time=self.time
         )
-        out_path = os.path.join(self.config.scripts_location, out_filename)
+        out_path = os.path.join(self.scripts_location, out_filename)
         with open(out_path, "w") as f:
             f.write(self.ddl.sql)
 

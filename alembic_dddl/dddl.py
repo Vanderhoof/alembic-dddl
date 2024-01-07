@@ -15,10 +15,13 @@ logger = logging.getLogger(__name__)
 
 
 class DDLRegistry:
+    """The registry keeps track of all DDL scripts"""
+
     def __init__(self) -> None:
         self.ddls = []
 
     def register(self, dddl: Union[DDL, Sequence[DDL]]) -> None:
+        """Add one or more DDLs to the registry."""
         if isinstance(dddl, collections.abc.Sequence):
             self.ddls.extend(dddl)
         else:
@@ -29,11 +32,17 @@ ddl_registry = DDLRegistry()
 
 
 def register_ddl(dddl: Union[DDL, Sequence[DDL]]) -> None:
+    """Register one or more DDLs in the global registry object."""
     ddl_registry.register(dddl)
 
 
 @comparators.dispatch_for("schema")
 def compare_custom_ddl(autogen_context: AutogenContext, upgrade_ops, _) -> None:
+    """
+    Autogenerate comparator, detects changes in registered DDL scripts and initiates sync
+    operations for the changed ones.
+    """
+
     config = load_config(autogen_context.opts["template_args"]["config"])
     logger.info(f"Loaded scripts location from config: {config.scripts_location}")
 
