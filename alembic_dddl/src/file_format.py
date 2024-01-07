@@ -31,9 +31,7 @@ class FileFormatBase(ABC):
         match = cls.pattern.match(filename)
         if not match:
             return None
-        return RevisionedScript(
-            filepath=filepath, name=match["name"], revision=match["revision"]
-        )
+        return RevisionedScript(filepath=filepath, name=match["name"], revision=match["revision"])
 
 
 class TimestampedFileFormat(FileFormatBase):

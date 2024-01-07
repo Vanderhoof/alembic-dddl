@@ -4,7 +4,7 @@ A plugin for [Alembic](https://alembic.sqlalchemy.org/en/latest/) DB migration t
 
 ## Why is it dumb?
 
-Because it doesn't try to be smart. It's really hard to compare arbitrary DDL scripts in the database with their sources in the project folder, because the scripts can contain multiple DDL statements, they may use version-specific features of a DBMS and they can be written for different DBMSs. 
+Because it doesn't try to be smart. It's really hard to compare arbitrary DDL scripts in the database with their sources in the project folder, because the scripts can contain multiple DDL statements, they may use version-specific features of a DBMS and they can be written for different DBMSs.
 
 **Alembic Dumb DDL doesn't check the state of the objects in the database, it only checks if the source code of the script has changed, comparing to the previous revision.** And that's why Alembic Dumb DDL supports all databases and any kind of DDL scripts.
 
@@ -60,7 +60,7 @@ from alembic_dddl import register_ddl
 register_ddl(my_ddl)
 
 # ...
-# the rest of the env.py file 
+# the rest of the env.py file
 ```
 
 That's it, from now on the alembic autogenerate command will keep track of `last_month_orders.sql`, and if it changes — automatically add update code to your migration scripts to update your entities.

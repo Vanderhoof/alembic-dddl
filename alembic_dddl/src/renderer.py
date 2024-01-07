@@ -5,7 +5,7 @@ from datetime import datetime
 import sqlparse
 
 from alembic_dddl.src.file_format import DateTimeFileFormat, TimestampedFileFormat
-from alembic_dddl.src.models import RevisionedScript, DDL
+from alembic_dddl.src.models import DDL, RevisionedScript
 from alembic_dddl.src.utils import ensure_dir, escape_quotes
 
 
@@ -14,7 +14,7 @@ class BaseRenderer(ABC):
 
     @abstractmethod
     def render(self) -> str:
-        '''Generate the code for the migration script'''
+        """Generate the code for the migration script"""
 
 
 class RevisionedScriptRenderer(BaseRenderer):
@@ -62,15 +62,18 @@ class DDLRenderer(BaseRenderer):
     """
 
     def __init__(
-        self, ddl: DDL, scripts_location: str, revision_id: str, time: datetime, use_timestamps: bool
+        self,
+        ddl: DDL,
+        scripts_location: str,
+        revision_id: str,
+        time: datetime,
+        use_timestamps: bool,
     ) -> None:
         self.scripts_location = scripts_location
         self.ddl = ddl
         self.revision_id = revision_id
         self.time = time
-        self.file_formatter = (
-            TimestampedFileFormat if use_timestamps else DateTimeFileFormat
-        )
+        self.file_formatter = TimestampedFileFormat if use_timestamps else DateTimeFileFormat
 
     def render(self) -> str:
         """

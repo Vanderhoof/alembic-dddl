@@ -1,7 +1,7 @@
 DROP VIEW IF EXISTS order_details;
 
 CREATE VIEW order_details AS
-SELECT 
+SELECT
     o.order_id,
     c.customer_name,
     c.customer_phone,

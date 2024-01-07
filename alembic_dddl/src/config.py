@@ -4,12 +4,12 @@ from typing import Any, Dict
 from alembic.config import Config
 from alembic.util.langhelpers import asbool
 
-DDDL_CONFIG_SECTION = 'alembic_dddl'
+DDDL_CONFIG_SECTION = "alembic_dddl"
 
 
 @dataclass
 class DDDLConfig:
-    scripts_location: str = 'migrations/versions/ddl'
+    scripts_location: str = "migrations/versions/ddl"
     use_timestamps: bool = False
     ignore_comments: bool = False
 
@@ -34,7 +34,7 @@ class DDDLConfig:
         return result
 
     @classmethod
-    def from_config(cls, alembic_config: Config) -> 'DDDLConfig':
+    def from_config(cls, alembic_config: Config) -> "DDDLConfig":
         """
         Extract DDDL configuration from alembic config and convert it into a DDDLConfig instance.
         """
@@ -50,4 +50,3 @@ class DDDLConfig:
 def load_config(c: Config) -> DDDLConfig:
     """Get DDDLConfig instance from alembic config"""
     return DDDLConfig.from_config(c)
-

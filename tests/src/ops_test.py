@@ -1,11 +1,18 @@
 from datetime import datetime
 from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
+from typing import Generator
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
-from alembic_dddl import RevisionedScript, SyncDDLOp, DDL
-from alembic_dddl.src.ops import run_ddl_script, RunDDLScriptOp, render_create_ddl
+from alembic_dddl import DDL
+from alembic_dddl.src.models import RevisionedScript
+from alembic_dddl.src.ops import (
+    RunDDLScriptOp,
+    SyncDDLOp,
+    render_create_ddl,
+    run_ddl_script,
+)
 
 DDL_DIR = Path(__file__).parent / "ddl"
 
@@ -28,19 +35,19 @@ def test_sync_ddl_op(sample_ddl1: DDL, rev_script: RevisionedScript) -> None:
 
 
 @pytest.fixture
-def mock_revision_script_renderer() -> Mock:
+def mock_revision_script_renderer() -> Generator:
     with patch("alembic_dddl.src.ops.RevisionedScriptRenderer") as mock_renderer:
         yield mock_renderer
 
 
 @pytest.fixture
-def mock_ddl_renderer() -> Mock:
+def mock_ddl_renderer() -> Generator:
     with patch("alembic_dddl.src.ops.DDLRenderer") as mock_renderer:
         yield mock_renderer
 
 
 @pytest.fixture
-def mock_sql_renderer() -> Mock:
+def mock_sql_renderer() -> Generator:
     with patch("alembic_dddl.src.ops.SQLRenderer") as mock_renderer:
         yield mock_renderer
 
@@ -54,9 +61,7 @@ class TestRenderCreateDDL:
         sample_ddl1: DDL,
         rev_script: RevisionedScript,
     ) -> None:
-        op = SyncDDLOp(
-            up_script=rev_script, down_script=sample_ddl1, time=datetime.now()
-        )
+        op = SyncDDLOp(up_script=rev_script, down_script=sample_ddl1, time=datetime.now())
 
         render_create_ddl(autogen_context=MagicMock(), op=op)
         assert mock_revision_script_renderer.called is True
@@ -71,9 +76,7 @@ class TestRenderCreateDDL:
         sample_ddl1: DDL,
         rev_script: RevisionedScript,
     ) -> None:
-        op = SyncDDLOp(
-            up_script=sample_ddl1, down_script=rev_script, time=datetime.now()
-        )
+        op = SyncDDLOp(up_script=sample_ddl1, down_script=rev_script, time=datetime.now())
 
         render_create_ddl(autogen_context=MagicMock(), op=op)
         assert mock_revision_script_renderer.called is False
@@ -103,7 +106,7 @@ class TestRenderCreateDDL:
         mock_sql_renderer: Mock,
         sample_ddl1: DDL,
     ) -> None:
-        op = SyncDDLOp(up_script=13, down_script=sample_ddl1, time=datetime.now())
+        op = SyncDDLOp(up_script=13, down_script=sample_ddl1, time=datetime.now())  # type: ignore
         with pytest.raises(ValueError):
             render_create_ddl(autogen_context=MagicMock(), op=op)
         assert mock_revision_script_renderer.called is False
@@ -113,15 +116,13 @@ class TestRenderCreateDDL:
 
 @pytest.fixture
 def mock_operations() -> Mock:
-    mock_config = Mock(
-        get_section=Mock(return_value={"scripts_location": str(DDL_DIR)})
-    )
+    mock_config = Mock(get_section=Mock(return_value={"scripts_location": str(DDL_DIR)}))
     operations = Mock(get_context=Mock(return_value=Mock(config=mock_config)))
     return operations
 
 
 def test_run_ddl_script_op(mock_operations) -> None:
-    RunDDLScriptOp.run_ddl_script(operations=mock_operations, script_name='script_name')
+    RunDDLScriptOp.run_ddl_script(operations=mock_operations, script_name="script_name")
     assert mock_operations.invoke.called is True
 
 

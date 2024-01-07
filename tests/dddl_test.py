@@ -1,7 +1,13 @@
-from unittest.mock import patch, Mock, MagicMock
+from unittest.mock import MagicMock, Mock, patch
 
-from alembic_dddl import DDL, RevisionedScript
-from alembic_dddl.dddl import DDLRegistry, ddl_registry, register_ddl, compare_custom_ddl
+from alembic_dddl import DDL
+from alembic_dddl.dddl import (
+    DDLRegistry,
+    compare_custom_ddl,
+    ddl_registry,
+    register_ddl,
+)
+from alembic_dddl.src.models import RevisionedScript
 
 
 class TestDDLRegistry:

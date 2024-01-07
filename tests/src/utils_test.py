@@ -1,6 +1,6 @@
 import pytest
 
-from alembic_dddl.src.utils import escape_quotes, ensure_dir
+from alembic_dddl.src.utils import ensure_dir, escape_quotes
 
 
 @pytest.mark.parametrize(

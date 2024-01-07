@@ -4,6 +4,7 @@ from dataclasses import dataclass
 @dataclass
 class DDL:
     """Dataclass for user defined DDL scripts"""
+
     name: str
     sql: str
     down_sql: str
@@ -22,9 +23,12 @@ class RevisionedScript:
             contents = f.read()
         return contents
 
-    def __eq__(self, other: 'RevisionedScript') -> bool:
+    def __eq__(self, other: object) -> bool:
         # for tests
-        return \
-            (self.filepath == other.filepath) and \
-            (self.name == other.name) and \
-            (self.revision == other.revision)
+        assert isinstance(other, RevisionedScript)
+
+        return (
+            (self.filepath == other.filepath)
+            and (self.name == other.name)
+            and (self.revision == other.revision)
+        )
