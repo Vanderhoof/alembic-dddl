@@ -4,7 +4,7 @@ from typing import Any, Dict
 from alembic.config import Config
 from alembic.util.langhelpers import asbool
 
-DDDL_CONFIG_SECTION = 'dddl'
+DDDL_CONFIG_SECTION = 'alembic_dddl'
 
 
 @dataclass
