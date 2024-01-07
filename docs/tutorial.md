@@ -29,9 +29,9 @@ Start by creating a  virtual environment and installing the dependencies.
 
 ### Defining the Tables
 
-Before writing any views in DDL scripts, we need some tables that they could call.
+Before writing any custom views, we need some tables that they could interact with.
 
-Let's create a simplistic table structure for an imaginary Web Shop:
+Let's create a simplistic table structure for an imaginary webshop:
 
 ```python
 # app/moddels.py
@@ -86,7 +86,7 @@ class ProductOrder(Base):
 
 ### Seting up Alembic
 
-To create migrations we first need to initialize Alembic environment
+Before we could migrations we first need to initialize the Alembic environment
 
 ```shell
 (venv) $ alembic init migrations
@@ -100,7 +100,7 @@ Set the database connection string in `alembic.ini`. We will be using SQLite for
 sqlalchemy.url = sqlite:///example.db
 ```
 
-Let's also set up Alembic DDDL logger while we're at it:
+Let's also [set up Alembic DDDL logger](logging.md) while we're at it:
 
 ```ini
 # alembic.ini
@@ -129,7 +129,7 @@ target_metadata = Base.metadata
 
 ### Running the first migration
 
-With Alembic environment set up, we can create and apply the first migration.
+With the Alembic environment set up, we can create and apply the first migration.
 
 ```shell
 (venv) $ alembic revision --autogenerate -m initial
@@ -155,14 +155,15 @@ The database is created and ready for our DDL experiments.
 
 ## Creating some views
 
-SQLite doesn't support user-defined functions and stored procedures, but with the current table structure, we still can have some fun with creating a few views.
+SQLite doesn't support user-defined functions and stored procedures, but with the current table structure, we still can have some fun creating a few views.
 
 For example these three:
 
-**best_customer**: show a customer who ordered the most products
+**best_customer**: show the customer who ordered the most products
 
 ```sql
 -- app/scripts/best_customer.sql
+
 DROP VIEW IF EXISTS best_customer;
 
 CREATE VIEW best_customer AS
@@ -182,10 +183,11 @@ ORDER BY
 LIMIT 1;
 ```
 
-**last_month_orders**: show only orders which were created in the latest 30 days
+**last_month_orders**: show only the orders that were created in the latest 30 days
 
 ```sql
 -- app/scripts/last_month_orders.sql
+
 DROP VIEW IF EXISTS last_month_orders;
 
 CREATE VIEW last_month_orders AS
@@ -198,6 +200,7 @@ CREATE VIEW last_month_orders AS
 
 ```sql
 -- app/scripts/order_details.sql
+
 DROP VIEW IF EXISTS order_details;
 
 CREATE VIEW order_details AS
@@ -225,7 +228,7 @@ For Alembic DDDL to be able to work with our scripts, we need to present them as
 
 DDL is a dataclass with three fields:
 
-* **name** will be used in the logs and in the revisioned script filename. Best make it the name of the entity your script creates.
+* **name** will be used in the logs and to generate the revisioned script filename.
 * **sql** is the source code of your script. We will just load it from the `.sql` file.
 * **down_sql** is the source code of the script that removes the entity. It will be used just once in the downgrade operation of first migration where the DDL will be introduced.
 
@@ -264,7 +267,7 @@ scripts = [
 ]
 ```
 
-And the final step before we see the magic of Alembic DDDL in action. We need to register these DDL scripts in the `env.py`:
+And the final step before we see the magic of Alembic DDDL in action. We need to register these DDL scripts in `env.py`:
 
 ```python
 # migrations/env.py
@@ -354,10 +357,10 @@ class ProductOrder(Base):
 +    price = mapped_column(Integer)
 ```
 
-Now we need to update the `order_details` view to feature this new field. Let's also make it group the details by order and show the sum instead of individual products.
+Now we need to update the `order_details` view to feature this new field. Let's also group the details by order and show the order sum.
 
 ```diff
--- app/scripts/order_details.sql
+# app/scripts/order_details.sql
 
 DROP VIEW IF EXISTS order_details;
 
@@ -384,7 +387,7 @@ JOIN
 We will also change the `best_customer` view to show the total amount they spent:
 
 ```diff
--- app/scripts/best_customer.sql
+# app/scripts/best_customer.sql
 
 DROP VIEW IF EXISTS best_customer;
 
@@ -406,7 +409,7 @@ ORDER BY
 LIMIT 1;
 ```
 
-We've changed the table structure and the scripts that define the views, now let's see if Alembic will notice all of these changes.
+We've changed the table structure and the two views, now let's see if Alembic will notice these changes.
 
 ```shell
 (venv) $ alembic revision --autogenerate -m product_prices
@@ -463,4 +466,6 @@ INFO  [alembic.runtime.migration] Running upgrade 18cdfbc6a8fe -> e09ef406f546, 
 
 ## Conclusion
 
-Now you know how to use Alembic DDDL to maintain your custom DDL scripts. We've practiced creating and changing the views in the database. Explore the [Example Project](https://github.com/Vanderhoof/alembic-dddl/tree/master/example/), which shows the final state of the app that we've created today. It also contains a bonus migration, which features a mixed creation of a new DDL script and an update of the existing one.
+Now you know how to use Alembic DDDL to maintain your custom DDL scripts. We've practiced creating and changing the views in the database.
+
+Explore the [Example Project](https://github.com/Vanderhoof/alembic-dddl/tree/master/example/), which shows the final state of the app that we've created today. It also contains a bonus migration, which features a mixed creation of a new DDL script and an update of the existing one.
