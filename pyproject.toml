@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "alembic-dddl"
+version = "0.1.0"
+description = "Support for custom DDL in Alembic."
+authors = ["Daniil Minukhin <ddddsa@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+alembic = "^1.9"
+sqlparse = "^0.4.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.0"
+coverage = "^7.4.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
