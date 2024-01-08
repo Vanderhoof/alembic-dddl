@@ -1,22 +1,20 @@
 import os
 from glob import glob
 from pathlib import Path
-from typing import Union, List, Dict, Tuple, Sequence, Optional
+from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 import sqlparse
 from alembic.autogenerate.api import AutogenContext
 
-from alembic_dddl.src.file_format import TimestampedFileFormat, DateTimeFileFormat
-from alembic_dddl.src.models import RevisionedScript, DDL
+from alembic_dddl.src.file_format import DateTimeFileFormat, TimestampedFileFormat
+from alembic_dddl.src.models import DDL, RevisionedScript
 
 
 class RevisionManager:
     def __init__(self, autogen_context: AutogenContext) -> None:
         self.revisions = autogen_context.opts["script"].walk_revisions()
         self.heads = autogen_context.opts["script"].get_heads()
-        self.cur_head = (
-            autogen_context.opts["revision_context"].generated_revisions[0].head
-        )
+        self.cur_head = autogen_context.opts["revision_context"].generated_revisions[0].head
 
     def get_ordered_revisions(self) -> List[str]:
         """
@@ -67,16 +65,14 @@ class DDLVersions:
         self, scripts: List[RevisionedScript]
     ) -> Dict[str, List[RevisionedScript]]:
         """Group a list of RevisionedScripts into a dictionary by revisions."""
-        result = {}
+        result: Dict[str, List[RevisionedScript]] = {}
 
         for script in scripts:
             result.setdefault(script.revision, []).append(script)
 
         return result
 
-    def get_latest_ddl_revisions(
-        self, rev_order: List[str]
-    ) -> Dict[str, RevisionedScript]:
+    def get_latest_ddl_revisions(self, rev_order: List[str]) -> Dict[str, RevisionedScript]:
         """
         Use the list of revisions ordered from head to base in `rev_order` parameter to create a
         dictionary of the latest versions of each script in ddl dir by name.
@@ -144,7 +140,7 @@ class CustomDDLComparator:
             List of pairs DDL - latest RevisionedScript for the changed DDLs.
         """
 
-        result = []
+        result: List[Tuple[DDL, Optional[RevisionedScript]]] = []
         for name, ddl in self.ddls.items():
             latest_ddl_revision = self.latest_revisions.get(name)
             if latest_ddl_revision is not None:

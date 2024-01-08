@@ -8,8 +8,13 @@ from alembic.autogenerate import renderers
 from alembic.operations import MigrateOperation, Operations
 
 from alembic_dddl.src.config import load_config
-from alembic_dddl.src.models import RevisionedScript, DDL
-from alembic_dddl.src.renderer import RevisionedScriptRenderer, DDLRenderer, SQLRenderer
+from alembic_dddl.src.models import DDL, RevisionedScript
+from alembic_dddl.src.renderer import (
+    BaseRenderer,
+    DDLRenderer,
+    RevisionedScriptRenderer,
+    SQLRenderer,
+)
 
 logger = logging.getLogger(f"alembic.{__name__}")
 
@@ -39,10 +44,8 @@ class SyncDDLOp(MigrateOperation):
         self.up_script = up_script
         self.down_script = down_script
 
-    def reverse(self) -> 'SyncDDLOp':
-        return SyncDDLOp(
-            up_script=self.down_script, down_script=self.up_script, time=self.time
-        )
+    def reverse(self) -> "SyncDDLOp":
+        return SyncDDLOp(up_script=self.down_script, down_script=self.up_script, time=self.time)
 
 
 @Operations.implementation_for(RunDDLScriptOp)
@@ -62,23 +65,23 @@ def run_ddl_script(operations: Operations, operation: RunDDLScriptOp) -> None:
 
 @renderers.dispatch_for(SyncDDLOp)
 def render_create_ddl(autogen_context, op: SyncDDLOp):
-    '''
+    """
     Render the code of upgrade/downgrade operations for the migration script for the given `op`.
-    '''
+    """
+
+    renderer: BaseRenderer
 
     if isinstance(op.up_script, RevisionedScript):
         renderer = RevisionedScriptRenderer(script=op.up_script)
     elif isinstance(op.up_script, DDL):
         config = load_config(autogen_context.opts["template_args"]["config"])
-        revision = (
-            autogen_context.opts["revision_context"].generated_revisions[0].rev_id
-        )
+        revision = autogen_context.opts["revision_context"].generated_revisions[0].rev_id
         renderer = DDLRenderer(
             ddl=op.up_script,
             scripts_location=config.scripts_location,
             revision_id=revision,
             time=op.time,
-            use_timestamps=config.use_timestamps
+            use_timestamps=config.use_timestamps,
         )
     elif isinstance(op.up_script, str):
         renderer = SQLRenderer(sql=op.up_script)

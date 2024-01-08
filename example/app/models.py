@@ -1,7 +1,9 @@
-from sqlalchemy import Integer, String, DateTime, ForeignKey
-from sqlalchemy.orm import declarative_base, mapped_column
+from sqlalchemy import DateTime, ForeignKey, Integer, String
+from sqlalchemy.orm import DeclarativeBase, mapped_column
 
-Base = declarative_base()
+
+class Base(DeclarativeBase):
+    pass
 
 
 class Customer(Base):
@@ -12,9 +14,9 @@ class Customer(Base):
     customer_info_id = mapped_column(
         Integer,
         ForeignKey(
-    "customer_info.customer_info_id",
-           name="customer_info_customer_info_id_fk",
-           ondelete="CASCADE"
+            "customer_info.customer_info_id",
+            name="customer_info_customer_info_id_fk",
+            ondelete="CASCADE",
         ),
     )
 
@@ -59,4 +61,3 @@ class ProductOrder(Base):
         ForeignKey("orders.order_id", ondelete="CASCADE"),
     )
     price = mapped_column(Integer)
-

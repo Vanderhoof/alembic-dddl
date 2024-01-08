@@ -1,12 +1,18 @@
 from datetime import datetime
 from pathlib import Path
 from textwrap import dedent
-from unittest.mock import patch, mock_open
+from unittest.mock import mock_open, patch
 
-from alembic_dddl import RevisionedScript, RevisionedScriptRenderer, SQLRenderer, DDL, DDLRenderer
+from alembic_dddl import DDL
 from alembic_dddl.src.file_format import TimestampedFileFormat
+from alembic_dddl.src.renderer import (
+    DDLRenderer,
+    RevisionedScript,
+    RevisionedScriptRenderer,
+    SQLRenderer,
+)
 
-DDL_DIR = Path(__file__).parent / 'ddl'
+DDL_DIR = Path(__file__).parent / "ddl"
 
 
 def test_revisioned_script_renderer(rev_script: RevisionedScript) -> None:
@@ -58,9 +64,9 @@ class TestDDLRenderer:
         renderer = DDLRenderer(
             ddl=sample_ddl1,
             scripts_location=str(DDL_DIR),
-            revision_id='abcdef123',
+            revision_id="abcdef123",
             time=datetime(2023, 1, 1, 12, 15),
-            use_timestamps=True
+            use_timestamps=True,
         )
 
         assert renderer.file_formatter == TimestampedFileFormat
@@ -70,20 +76,20 @@ class TestDDLRenderer:
         renderer = DDLRenderer(
             ddl=sample_ddl1,
             scripts_location=str(DDL_DIR),
-            revision_id='abcdef123',
+            revision_id="abcdef123",
             time=datetime(2023, 1, 1, 12, 15),
-            use_timestamps=False
+            use_timestamps=False,
         )
 
-        expected_filename = '2023_01_01_1215_sample_ddl1_abcdef123.sql'
+        expected_filename = "2023_01_01_1215_sample_ddl1_abcdef123.sql"
         expected_filepath = str(DDL_DIR / expected_filename)
         expected_result = f"op.run_ddl_script('{expected_filename}')"
 
-        with patch('alembic_dddl.src.renderer.ensure_dir') as mock_ensure_dir:
-            with patch('alembic_dddl.src.renderer.open', mock_open()) as mopen:
+        with patch("alembic_dddl.src.renderer.ensure_dir") as mock_ensure_dir:
+            with patch("alembic_dddl.src.renderer.open", mock_open()) as mopen:
                 result = renderer.render()
                 assert mock_ensure_dir.called is True
-                mopen.assert_called_once_with(expected_filepath, 'w')
+                mopen.assert_called_once_with(expected_filepath, "w")
 
         assert result == expected_result
 
@@ -92,19 +98,19 @@ class TestDDLRenderer:
         renderer = DDLRenderer(
             ddl=sample_ddl1,
             scripts_location=str(DDL_DIR),
-            revision_id='abcdef123',
+            revision_id="abcdef123",
             time=datetime(2023, 1, 1, 12, 15),
-            use_timestamps=True
+            use_timestamps=True,
         )
 
-        expected_filename = '1672571700_sample_ddl1_abcdef123.sql'
+        expected_filename = "1672571700_sample_ddl1_abcdef123.sql"
         expected_filepath = str(DDL_DIR / expected_filename)
         expected_result = f"op.run_ddl_script('{expected_filename}')"
 
-        with patch('alembic_dddl.src.renderer.ensure_dir') as mock_ensure_dir:
-            with patch('alembic_dddl.src.renderer.open', mock_open()) as mopen:
+        with patch("alembic_dddl.src.renderer.ensure_dir") as mock_ensure_dir:
+            with patch("alembic_dddl.src.renderer.open", mock_open()) as mopen:
                 result = renderer.render()
                 assert mock_ensure_dir.called is True
-                mopen.assert_called_once_with(expected_filepath, 'w')
+                mopen.assert_called_once_with(expected_filepath, "w")
 
         assert result == expected_result

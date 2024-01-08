@@ -4,12 +4,12 @@ from unittest.mock import patch
 
 import pytest
 
-from alembic_dddl import RevisionedScript
-from alembic_dddl.src.file_format import TimestampedFileFormat, DateTimeFileFormat
+from alembic_dddl.src.file_format import DateTimeFileFormat, TimestampedFileFormat
+from alembic_dddl.src.models import RevisionedScript
 
 
 def test_get_script_if_matches_not_matches() -> None:
-    filepath = f"wrong_filename.sql"
+    filepath = "wrong_filename.sql"
 
     result = TimestampedFileFormat.get_script_if_matches(filepath=filepath)
 
@@ -44,9 +44,7 @@ class TestTimestampedFileFormat:
 
         expected = "1703860266_sample_script_name_c7526352.sql"
 
-        result = TimestampedFileFormat.generate_filename(
-            name=name, revision=revision, time=time
-        )
+        result = TimestampedFileFormat.generate_filename(name=name, revision=revision, time=time)
         assert result == expected
 
 
@@ -72,7 +70,5 @@ class TestDateTimeFileFormat:
 
         expected = "2023_01_01_0915_sample_script_name_c7526352.sql"
 
-        result = DateTimeFileFormat.generate_filename(
-            name=name, revision=revision, time=time
-        )
+        result = DateTimeFileFormat.generate_filename(name=name, revision=revision, time=time)
         assert result == expected
