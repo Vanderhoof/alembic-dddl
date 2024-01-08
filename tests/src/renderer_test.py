@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from textwrap import dedent
 from unittest.mock import mock_open, patch
@@ -99,11 +99,11 @@ class TestDDLRenderer:
             ddl=sample_ddl1,
             scripts_location=str(DDL_DIR),
             revision_id="abcdef123",
-            time=datetime(2023, 1, 1, 12, 15),
+            time=datetime(2023, 1, 1, 12, 15, tzinfo=timezone.utc),
             use_timestamps=True,
         )
 
-        expected_filename = "1672571700_sample_ddl1_abcdef123.sql"
+        expected_filename = "1672575300_sample_ddl1_abcdef123.sql"
         expected_filepath = str(DDL_DIR / expected_filename)
         expected_result = f"op.run_ddl_script('{expected_filename}')"
 
