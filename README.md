@@ -23,7 +23,7 @@ CREATE VIEW last_month_orders AS
     WHERE order_date > current_date - interval '30 days';
 ```
 
-Step 2: Wrap your in a `DDL` class:
+Step 2: Wrap your script in a `DDL` class:
 
 ```python
 # myapp/models.py
@@ -65,7 +65,7 @@ register_ddl(my_ddl)
 
 That's it, from now on the alembic autogenerate command will keep track of `last_month_orders.sql`, and if it changes — automatically add update code to your migration scripts to update your entities.
 
-Run the autogenerate command:
+The first run of the autogenerate command:
 
 ```shell
 $ alembic revision --autogenerate -m "last_month_orders"
@@ -75,6 +75,8 @@ INFO  [alembic_dddl.dddl] Loaded scripts location from config: migrations/versio
 INFO  [alembic_dddl.dddl] Detected new DDL "last_month_orders"
   Generating /Users/user/Projects/Python/alembic_custom_ddl/example/migrations/versions/2024_01_08_0955-0c897e9399a9_last_month_orders.py ...  done
 ```
+
+For more detailed example see [Example Project](https://github.com/Vanderhoof/alembic-dddl/tree/master/example/).
 
 ## Installation
 
