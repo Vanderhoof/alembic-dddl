@@ -2,7 +2,7 @@
 
 [![](https://img.shields.io/pypi/v/alembic-dddl.svg)](https://pypi.org/project/alembic-dddl/) [![](https://img.shields.io/github/v/tag/Vanderhoof/alembic-dddl.svg?label=GitHub)](https://github.com/Vanderhoof/alembic-dddl) ![tests](https://github.com/Vanderhoof/alembic-dddl/actions/workflows/tests.yml/badge.svg) [![codecov](https://codecov.io/gh/Vanderhoof/alembic-dddl/graph/badge.svg?token=BQJBA9PXPN)](https://codecov.io/gh/Vanderhoof/alembic-dddl)
 
-A plugin for [Alembic](https://alembic.sqlalchemy.org/en/latest/) DB migration tool that adds support for arbitrary user-defined objects like views or functions in autogenerate command.
+A plugin for [Alembic](https://alembic.sqlalchemy.org/en/latest/) DB migration tool that adds support for arbitrary user-defined objects like views, functions, triggers, etc. in autogenerate command.
 
 Alembic DDDL _does not_ compare the objects in the code with their state in the database. Instead, it **only tracks if the source code of the script has changed**, compared to the previous revision.
 

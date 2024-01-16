@@ -152,7 +152,7 @@ class CustomDDLComparator:
 
     def _scripts_differ(self, one: str, two: str) -> bool:
         """
-        Compare two scripts, ignoring indentation differences and optinoally ignoring comments.
+        Compare two scripts, ignoring formatting and optionally ignoring comments.
 
         Args:
             one: the first script source code
@@ -161,11 +161,14 @@ class CustomDDLComparator:
         Returns:
             True if the scripts differ, False if the scripts are the same
         """
-        one_norm = sqlparse.format(
-            one.strip(), reindent_aligned=True, strip_comments=self.ignore_comments
-        )
-        two_norm = sqlparse.format(
-            two.strip(), reindent_aligned=True, strip_comments=self.ignore_comments
-        )
+        kwargs = {
+            "reindent_aligned": True,
+            "strip_comments": self.ignore_comments,
+            "keyword_case": "upper",
+            "identifier_case": "lower",
+            "use_space_around_operators": True,
+        }
+        one_norm = sqlparse.format(one.strip(), **kwargs)
+        two_norm = sqlparse.format(two.strip(), **kwargs)
 
         return one_norm != two_norm

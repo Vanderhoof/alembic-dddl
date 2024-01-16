@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "alembic-dddl"
-version = "0.1.1"
+version = "0.1.2"
 description = "Alembic extension that adds support for arbitrary user-defined objects like views or functions in autogenerate command."
 authors = ["Daniil Minukhin <ddddsa@gmail.com>"]
 license = "MIT"

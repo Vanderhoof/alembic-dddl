@@ -293,6 +293,12 @@ class TestComparatorScriptsDiffer:
         assert empty_comparator._scripts_differ(one=script1, two=script2) is False
 
     @staticmethod
+    def test_changed_case_script(empty_comparator: CustomDDLComparator) -> None:
+        script1 = "SELECT * FROM Customers WHERE customer_name LIKE 'John%';"
+        script2 = "select * fRoM CuStOmErS WHERE CUSTOMER_NAME LIKE 'John%';"
+        assert empty_comparator._scripts_differ(one=script1, two=script2) is False
+
+    @staticmethod
     def test_comments_ignored(empty_comparator: CustomDDLComparator) -> None:
         empty_comparator.ignore_comments = True
         script1 = "SELECT * FROM Customers WHERE customer_name LIKE 'John%';"
