@@ -1,6 +1,6 @@
 # Alembic Dumb DDL
 
-[![](https://img.shields.io/pypi/v/alembic-dddl.svg)](https://pypi.org/project/alembic-dddl/) [![](https://img.shields.io/github/v/tag/Vanderhoof/alembic-dddl.svg?label=GitHub)](https://github.com/Vanderhoof/alembic-dddl) ![tests](https://github.com/Vanderhoof/alembic-dddl/actions/workflows/tests.yml/badge.svg) [![codecov](https://codecov.io/gh/Vanderhoof/alembic-dddl/graph/badge.svg?token=BQJBA9PXPN)](https://codecov.io/gh/Vanderhoof/alembic-dddl)
+[![](https://img.shields.io/pypi/v/alembic-dddl.svg)](https://pypi.org/project/alembic-dddl/) [![](https://img.shields.io/github/v/tag/Vanderhoof/alembic-dddl.svg?label=GitHub)](https://github.com/Vanderhoof/alembic-dddl) ![tests](https://github.com/Vanderhoof/alembic-dddl/actions/workflows/tests.yml/badge.svg) [![codecov](https://codecov.io/gh/Vanderhoof/alembic-dddl/graph/badge.svg?token=BQJBA9PXPN)](https://codecov.io/gh/Vanderhoof/alembic-dddl) [![](https://img.shields.io/pypi/dm/alembic-dddl)](https://pypi.org/project/alembic-dddl/)
 
 A plugin for [Alembic](https://alembic.sqlalchemy.org/en/latest/) DB migration tool that adds support for arbitrary user-defined objects like views, functions, triggers, etc. in autogenerate command.
 
