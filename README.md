@@ -118,5 +118,5 @@ Managing your custom entities with Alembic DDDL has several benefits:
 
 # Maintainers
 
-[@Vanderhoof](https://github.com/Vanderhoof)
-[@Bopio](https://github.com/bopio)
+* [@Vanderhoof](https://github.com/Vanderhoof)
+* [@Bopio](https://github.com/bopio)
