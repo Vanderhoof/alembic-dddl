@@ -115,3 +115,8 @@ Managing your custom entities with Alembic DDDL has several benefits:
 * [How it Works](docs/how_it_works.md)
 * [Configuration](docs/configuration.md)
 * [Setting up Logging](docs/logging.md)
+
+# Maintainers
+
+@Vanderhoof
+@Bopio
