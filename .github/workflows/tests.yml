@@ -7,11 +7,10 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11']
+        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
 
     steps:
     - uses: actions/checkout@v2
-
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
@@ -43,11 +42,3 @@ jobs:
       uses: codecov/codecov-action@v3
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-
-    # 🛠️ **Move the error log upload step here**
-    - name: Upload Poetry Error Log
-      if: failure()  # Runs only if the job fails
-      uses: actions/upload-artifact@v4
-      with:
-        name: poetry-error-log
-        path: /home/runner/work/alembic-dddl/alembic-dddl/poetry-installer-error-*.log
