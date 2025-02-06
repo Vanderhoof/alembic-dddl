@@ -20,6 +20,12 @@ jobs:
       run: |
         curl -sSL https://install.python-poetry.org | python - -y ${{ matrix.bootstrap-args }}
         echo "$HOME/.local/bin" >> $GITHUB_PATH
+    - name: Upload Poetry Error Log
+      if: failure()  # Only runs if the job fails
+      uses: actions/upload-artifact@v4
+      with:
+        name: poetry-error-log
+        path: /home/runner/work/alembic-dddl/alembic-dddl/poetry-installer-error-*.log
 
     - name: Cache Poetry virtualenv
       uses: actions/cache@v2
