@@ -11,6 +11,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
@@ -20,12 +21,6 @@ jobs:
       run: |
         curl -sSL https://install.python-poetry.org | python3 -
         echo "$HOME/.local/bin" >> $GITHUB_PATH
-    - name: Upload Poetry Error Log
-      if: failure()  # Only runs if the job fails
-      uses: actions/upload-artifact@v4
-      with:
-        name: poetry-error-log
-        path: /home/runner/work/alembic-dddl/alembic-dddl/poetry-installer-error-*.log
 
     - name: Cache Poetry virtualenv
       uses: actions/cache@v2
@@ -48,3 +43,11 @@ jobs:
       uses: codecov/codecov-action@v3
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+    # 🛠️ **Move the error log upload step here**
+    - name: Upload Poetry Error Log
+      if: failure()  # Runs only if the job fails
+      uses: actions/upload-artifact@v4
+      with:
+        name: poetry-error-log
+        path: /home/runner/work/alembic-dddl/alembic-dddl/poetry-installer-error-*.log
